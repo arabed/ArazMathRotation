@@ -1,5 +1,5 @@
 from tkinter import *
-
+import numpy as np
 class MathRotation:
 
     # Initializing 
@@ -9,7 +9,7 @@ class MathRotation:
         self.h = h
         self.dx = 40
         self.dy = 40
-        self.oriPoints = []
+        self.oriPoints = None
 
         self.root = root
         self.canvas = Canvas(self.root, width=self.w, height=self.h)
@@ -47,25 +47,29 @@ class MathRotation:
         #self.canvas.create_line(150, 80, 200, 100, fill="#476042", width=3)
     
     def createPolygon(self, points):
-        self.oriPoints.clear()
-        alt = True
-        for point in points:
-            if alt:
-                # this is x
-                self.oriPoints.append((point * self.dx) + (self.w / 2))
-                alt = False
-            else:
-                # this is y
-                self.oriPoints.append((point * self.dy * -1) + (self.h / 2))
-                alt = True
-        self.canvas.create_polygon(self.oriPoints, outline='#008080', fill='', width=2)
+        self.oriPoints = points
+
+    def drawPolygon(self, radians, color):
+        drawPoints = []
+        for x,y in self.oriPoints:
+            xx =  x * np.cos(radians) - y * np.sin(radians)
+            yy = -x * np.sin(radians) - y * np.cos(radians)
+            x = (xx * self.dx) + (self.w / 2)
+            y = (yy * self.dx) + (self.h / 2)
+            drawPoints.append(x)
+            drawPoints.append(y)
+        self.canvas.create_polygon(drawPoints, outline=color, fill='', width=2)
 
     def key(self, event):
         print("pressed", repr(event.char))
 
     def motion(self, event):
-        x, y = event.x, event.y
-        print('{}, {}'.format(x, y))
+        x = event.x - self.w / 2
+        y = event.y - self.h / 2
+        radians = np.arctan2(-y, x)
+        self.drawPolygon(0, '#40FF80')
+        self.drawPolygon(radians, '#FF8040')
+        print('{}'.format(radians* 180 / np.pi))
 
     def click(self, event):
         self.frame.focus_set()
@@ -74,5 +78,6 @@ class MathRotation:
 if __name__ == "__main__":
     root = Tk()
     mathRotation = MathRotation(root, 800, 800)
-    mathRotation.createPolygon([0,0,1,1,-1,1])
+    mathRotation.createPolygon([(0,3),(1,1),(-3,3)])
+    mathRotation.drawPolygon(0, '#40FF80')
     root.mainloop()
